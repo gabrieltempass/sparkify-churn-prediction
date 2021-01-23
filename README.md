@@ -6,3 +6,4 @@ To run locally:
 - Java 1.8.0_271
 - pyspark 2.4.0
 - Jupyter notebook 6.2.0
+- user-agents 2.2.0
