@@ -48,50 +48,38 @@ class Axes:
 
         return ax1, ax2
 
-    def hist_subplot(self, grid, row, column, bins=10):
-        """Build an axes.
+
+class Barh:
+
+    def __init__(self, x, y, title, nbins=10, grid_axis='y'):
+        self.x = x
+        self.y = y
+        self.title = title
+        self.nbins = nbins
+        self.grid_axis = grid_axis
+        
+    def subplot(self, grid, row, column):
+        """Build an axes with a horizontal bar chart inside a grid.
 
         Parameters:
             grid (Gridspec object):
             row (Integer):
             column (Integer):
-            bins (Integer):
 
-        Results:
-            axes 
+        Returns:
+            axes: 
         """
 
         ax = plt.subplot(grid[row, column])
-        ax.hist(self.x, bins=bins)
+        ax.barh(self.x, self.y)
         ax.set_title(self.title)
         ax.grid(axis=self.grid_axis)
         ax.tick_params(left=False, bottom=False)
-
-        if self.nbins < 10:
+        
+        if self.nbins != 10:
             ax.locator_params(axis='x', nbins=self.nbins)
-        
+
         return ax
-
-
-class Barh:
-
-    def __init__(self, x, y, title, grid_axis='y', bins=10):
-        self.x = x
-        self.y = y
-        self.title = title
-        self.grid_axis = grid_axis
-        # self.tick_params = tick_params
-        self.bins = bins
-
-
-    # def plot(self, figsize=(12, 4), dpi=500):
-
-    #     return ax1, ax2
-
-        
-    # def subplot(self, grid, row, column):
-
-    #     return ax
 
 
 class Hist:
@@ -101,9 +89,18 @@ class Hist:
         self.title = title
         self.bins = bins
         self.grid_axis = grid_axis
-
         
     def subplot(self, grid, row, column):
+        """Build an axes with a histogram inside a grid.
+
+        Parameters:
+            grid (Gridspec object):
+            row (Integer):
+            column (Integer):
+
+        Returns:
+            axes: 
+        """
 
         ax = plt.subplot(grid[row, column])
         ax.hist(self.x, bins=self.bins)
