@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gs
+from matplotlib import ticker
 
 
 class Axes:
@@ -47,6 +48,88 @@ class Axes:
         plt.tight_layout(h_pad=2, w_pad=2)
 
         return ax1, ax2
+
+
+class BarhStacked2:
+
+    def __init__(self, x1, x2, labels, title, legend, color1='#E24A33', color2='#777777', perc=True):
+        self.x1 = x1
+        self.x2 = x2
+        self.labels = labels
+        self.title = title
+        self.legend = legend
+        self.color1 = color1  # default is red
+        self.color2 = color2  # default is light grey
+        self.perc = perc  # deafult is to format the labels of the x axis as percentages
+
+    def subplot(self, grid, row, column):
+        """Build an axes with a horizontal bar chart inside a grid.
+
+        Parameters:
+            grid (Gridspec object):
+            row (Integer):
+            column (Integer):
+
+        Returns:
+            axes: 
+        """
+
+        def put_legend(rects, text, color):
+            """Attach the legend text above and in the middle of each rects bar.
+            """
+
+            ax.annotate(text,
+                        xy=(rects[-1].get_x() + rects[-1].get_width()/2, rects[-1].get_y() + rects[-1].get_height()),
+                        xytext=(0, 5),  # 5 points vertical offset (padding)
+                        textcoords="offset points",
+                        ha='center', va='bottom',
+                        color=color)
+
+        n_classes = len(self.x1)
+        space = 1/(4 + (n_classes - 1)*3)  # 1/4, 1/7, 1/10...
+
+        # 1: the size of the y axis
+        # (4 + (n_classes - 1)*3): the number of spaces to divide the y axis by.
+
+        # The bar height is 2 spaces and between them is 1 space.
+        # For example, if there are 2 classes in the y axis, the number of spaces nedded is:
+        # 1 (from x axis to first bar)
+        # + 2 (first bar height)
+        # + 1 (between bars)
+        # + 2 (second bar height)
+        # + 1 (from second bar to the top limit)
+        # = 7
+
+        index = []
+        for i in range(n_classes):
+            position_multiplier = 2 + i*3
+            index.append(space*position_multiplier)  # [space*2, space*5, space*8...]
+
+        height = space*2
+
+        ax = plt.subplot(grid[row, column])
+
+        rects1 = ax.barh(index, self.x1, height=height, tick_label=self.labels, color=self.color1)  # set the first bar series color
+        rects2 = ax.barh(index, self.x2, height=height, left=self.x1, color=self.color2)  # set the second bar series color
+
+        ax.set_title(self.title, color='#555555', pad=20) # set dark grey as x axis color
+        
+        put_legend(rects1, text=self.legend[0], color=self.color1)
+        put_legend(rects2, text=self.legend[1], color=self.color2)
+        
+        ax.set_facecolor('w')  # set white as background color
+
+        ax.tick_params(left=False, width=1)  # set ticks width to 1, to match the spine line width
+        ax.spines['bottom'].set_color('#555555')  # set dark grey as x axis color
+        ax.spines['bottom'].set_linewidth(1)  # set spine line width to 1, to match the ticks width
+
+        if self.perc:
+            ax.xaxis.set_major_formatter(ticker.PercentFormatter())  # format x axis labels as percentages
+
+        ax.margins(x=0, y=0)
+        ax.set_ylim(0, 1)
+
+        return ax
 
 
 class Barh:
