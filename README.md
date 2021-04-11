@@ -6,9 +6,11 @@ A model to predict churn for a music streaming company, with Spark running on an
 
 The project analyzes the characteristics and behaviors of the users from a music streaming service and, based on that, predicts which ones will churn.
 
-The dataset used is a log file containing all the user interactions with the platform over time, such as: songs listened, pages visited and profile information.
+The dataset used is a log file containing all the user interactions with the platform over time, for example: songs listened, pages visited and profile information. Since the file has around 26 million rows (12 Gb), it is practically infeasible to use a single machine to run the model, thus, an AWS EMR cluster was used.
 
-The Sparkify project is divided into the following tasks:
+Pandas and Scikit-learn libraries are not able to run on distributed clusters. However, Spark is capable of such, so, it was used to do the ETL, with the [PySpark SQL module](https://spark.apache.org/docs/2.4.4/api/python/pyspark.sql.html), and apply the machine learning algorithims, with the [PySpark ML Package](https://spark.apache.org/docs/2.4.4/api/python/pyspark.ml.html).
+
+The project is divided into the following tasks:
 
 ### 1. Load and Clean Dataset
 
