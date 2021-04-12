@@ -1,6 +1,6 @@
 # Sparkify Churn Prediction
 
-A model to predict churn for a music streaming company, with Spark running on an AWS EMR cluster.
+A model to predict user churn for a music streaming company, with Spark running on an Amazon Web Services (AWS) Elastic Map Reduce (EMR) cluster.
 
 ## Description
 
@@ -8,7 +8,7 @@ The project analyzes the characteristics and behaviors of the users from a music
 
 The dataset used is a log file containing all the user interactions with the platform over time, for example: songs listened, pages visited and profile information. Since the file has around 26 million rows (12 Gb), it is practically infeasible to use a single machine to run the model, thus, an AWS EMR cluster was used.
 
-Pandas and Scikit-learn libraries are not able to run on distributed clusters. However, Spark is capable of such, so, it was used to do the ETL, with the [PySpark SQL module](https://spark.apache.org/docs/2.4.4/api/python/pyspark.sql.html), and apply the machine learning algorithims, with the [PySpark ML Package](https://spark.apache.org/docs/2.4.4/api/python/pyspark.ml.html).
+Pandas and Scikit-learn libraries are not able to run on distributed clusters. However, Spark is capable of such, so, it was used to do the extract, transform, load (ETL) process, with the [PySpark SQL module](https://spark.apache.org/docs/2.4.4/api/python/pyspark.sql.html), and apply the machine learning algorithims, with the [PySpark ML Package](https://spark.apache.org/docs/2.4.4/api/python/pyspark.ml.html).
 
 The project is divided into the following tasks:
 
@@ -23,6 +23,8 @@ Perform an exploratory data analysis for the whole user log file, viewing the nu
 ### 3. Feature Engineering
 
 Build out the features that seem promising to train the model on and put them in a users features matrix. Then, plot the features against the target label (Churn), to indentify and understand possible correlations and causalities.
+
+![Screenshot](images/screenshot.png)
 
 ### 4. Modeling
 
@@ -54,7 +56,7 @@ To run on an AWS EMR cluster:
 
 ## Execute
 
-To run locally:
+### To run locally:
 
 1. Clone the git repository:
 
@@ -65,7 +67,40 @@ To run locally:
 
 `jupyter notebook "notebook/sparkify_churn_prediction.ipynb"`
 
-To run on an AWS EMR cluster:
+### To run on an AWS EMR cluster:
+
+This step by step instructions will use the AWS web user interface to create the EMR cluster. But another way would be to use the [AWS CloudFormation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html) in the command line.
+
+1. [Login into the AWS console](https://console.aws.amazon.com/console/home). If you do not have an AWS account yet, [create one for free](https://aws.amazon.com/free/).
+2. Search for EC2 and go to its page.
+3. In the left menu, click in `Key Pairs`, under Network & Security.
+4. Click in `Create key pair`.
+5. Choose a name for it and click in `Create key pair`.
+6. Search for EMR and go to its page.
+7. Click in `Create cluster`.
+8. Click in `Go to advanced options`.
+9. In the Software Configuration section, select `emr-5.29.0`.
+10. Still in the Software Configuration section, make sure the boxes `Hadoop 2.8.5`, `JupyterHub 1.0.0`, `Hive 2.3.6`, `Spark 2.4.4` and `Livy 0.6.0` are checked and the rest is unchecked.
+11. In the Edit software settings section, make sure the option `Enter configuration` is selected and paste the following code beneath it:
+
+```
+[
+    {
+        "Classification": "livy-conf",
+        "Properties": {
+            "livy.server.session.timeout-check": "false",
+            "livy.server.session.timeout": "24h"
+        }
+    }
+]
+```
+
+12. Click in `Next`, to go to Step 2: Hardware.
+13. In the Cluster Nodes and Instances section, make sure there is one instance as the driver (master) and two instances as the executors (core), with the following configurations: `m5.xlarge`, `4 vCore`, `16 GiB memory`, `EBS only storage` and `EBS Storage: 64 GiB`.
+14. Click in `Next`, to go to Step 3: General Cluster Settings.
+15. Click in `Next`, to go to Step 4: Security.
+16. In the Security Options, select the EC2 key pair created in the step 5.
+17. Click in `Create cluster`.
 
 ## Notebook
 
