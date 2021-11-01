@@ -32,10 +32,9 @@ Create a machine learning model to predict which users will churn based on their
 
 ### 5. Evaluating
 
-Since this problem has a high class imbalance, accuracy is not the best metric to measure it. Recall could have been used if the desire was to maximize the correct churn detection (true positives). But this would probably lead to the model also having more false positives. Which translating to the real world, it means that it would be more expensive to prevent churn. For example, if the company sends a 10% discount to all the users predicted to churn, it will correctly target most of them that would indeed churn, but it will also unnecessarily send the discount to users that would not leave.
+Since this problem has a high class imbalance, accuracy is not the best metric to measure it. [Recall](https://en.wikipedia.org/wiki/Precision_and_recall) could have been used if the desire was to maximize the correct churn detection (true positives). But this would probably lead to the model also having more false positives. Which translating to the real world, it means that it would be more expensive to prevent churn. For example, if the company sends a 10% discount to all the users predicted to churn, it will correctly target most of them that would indeed churn, but it will also unnecessarily send the discount to users that would not leave.
 
-
-That is why the AUC metric was chosen at the end. Because it finds a good balance between [sensitivity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity) and [specificity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity), besides being robust against class inbalance. As a result, it avoids the recall problem of having too much false positives, thus being more cost efficient.
+That is why the [F1](https://en.wikipedia.org/wiki/F-score) metric was chosen at the end. Because it finds a good balance between [precision](https://en.wikipedia.org/wiki/Precision_and_recall) and recall, besides being robust against class inbalance. As a result, it avoids the recall problem of having too much false positives and it is usually more cost efficient in practice (do not target that many users that would not leave anyway).
 
 ### 6. Conclusion
 
