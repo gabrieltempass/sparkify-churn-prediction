@@ -8,7 +8,7 @@ The project analyzes the characteristics and behaviors of the users from a music
 
 The dataset used is a log file containing all the user interactions with the platform over time, for example: songs listened, pages visited and profile information. Since the file has around 26 million rows (12 Gb), it is practically infeasible to use a single machine to run the model, thus, an AWS EMR cluster was used.
 
-Pandas and Scikit-learn libraries are not able to run on distributed clusters. However, Spark is capable of such, so, it was used to do the extract, transform, load (ETL) process, with the [PySpark SQL module](https://spark.apache.org/docs/2.4.4/api/python/pyspark.sql.html), and apply the machine learning algorithims, with the [PySpark ML Package](https://spark.apache.org/docs/2.4.4/api/python/pyspark.ml.html).
+Pandas and Scikit-learn libraries are not able to run on distributed clusters. However, Spark is capable of such, so, it was used to do the extract, transform, load (ETL) process, with the [PySpark SQL module](https://spark.apache.org/docs/2.4.4/api/python/pyspark.sql.html), and to apply the machine learning algorithims, with the [PySpark ML Package](https://spark.apache.org/docs/2.4.4/api/python/pyspark.ml.html).
 
 The project is divided into the following tasks:
 
@@ -28,9 +28,16 @@ Build out the features that seem promising to train the model on and put them in
 
 ### 4. Modeling
 
-Create a machine learning model to predict which users will churn based on their characteristics and behaviors. Making a pipeline and processing the users features matrix to be in the correct input format for the model, with indexer, one hot encoder and vector assembler. Tune the parameters through cross validation with grid search, show the results and save the best model.
+Create a machine learning model to predict which users will churn based on their characteristics and behaviors. Make a pipeline and process the users features matrix to be in the correct input format for the model, with indexer, one hot encoder and vector assembler. Tune the parameters through cross validation with grid search, show the results and save the best model.
 
-### 5. Conclusion
+### 5. Evaluating
+
+Since this problem has a high class imbalance, accuracy is not the best metric to measure it. Recall could have been used if the desire was to maximize the correct churn detection (true positives). But this would probably lead to the model also having more false positives. Which translating to the real world, it means that it would be more expensive to prevent churn. For example, if the company sends a 10% discount to all the users predicted to churn, it will correctly target most of them that would indeed churn, but it will also unnecessarily send the discount to users that would not leave.
+
+
+That is why the AUC metric was chosen at the end. Because it finds a good balance between [sensitivity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity) and [specificity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity), besides being robust against class inbalance. As a result, it avoids the recall problem of having too much false positives, thus being more cost efficient.
+
+### 6. Conclusion
 
 Discuss which methods to use moving forward, and how to test how well the recommendations are working for engaging users.
 
@@ -108,7 +115,7 @@ The Jupyter notebook contains the five parts detailed in the README description.
 
 ## Dataset
 
-There are two datasets: the mini, to be used in the local mode to explore the data and test the model, and the full, to be used in a distributed cluster (simulating a production environment). Both of them were provided by Udacity and are available at AWS S3 with these filepaths:
+There are two datasets: the mini, to be used in the local mode to explore the data and test the model, and the full, to be used in a distributed cluster (simulating a production environment). Both of them were provided by Udacity and are available in AWS S3 with these filepaths:
 
 - Full dataset (12 Gb, around 26 million rows):
   
