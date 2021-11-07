@@ -6,7 +6,8 @@ import pandas as pd
 from pyspark.sql import SparkSession, Window
 from pyspark.sql.functions import col, udf, from_unixtime, year, weekofyear, substring, encode, decode, split, desc, avg, first, concat_ws, countDistinct, sum as Fsum, max as Fmax, min as Fmin
 from pyspark.sql.types import StringType, LongType, IntegerType, DateType, TimestampType
-from pyspark.ml.feature import StringIndexer, OneHotEncoderEstimator, VectorAssembler, PCA
+from pyspark.ml.feature import StringIndexer, OneHotEncoder, VectorAssembler, PCA
+# from pyspark.ml.feature import StringIndexer, OneHotEncoderEstimator, VectorAssembler, PCA
 from pyspark.ml.classification import LogisticRegression, RandomForestClassifier
 from pyspark.ml import Pipeline
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator, BinaryClassificationEvaluator
@@ -106,6 +107,13 @@ st.write('Rows:', df_log.count())
 st.write('Columns:', len(df_log.columns))
 st.write('Distinct user IDs:', distinct_user_ids)
 
+st.subheader('Step 2')
+total = 1
+n_steps = 32
+percent_complete = total/n_steps
+my_bar = st.progress(0.0)
+my_bar.progress(percent_complete)
+
 df_log = (df_log
     .withColumn('registration',
     			from_unixtime(col('registration')/1000).cast(TimestampType()))
@@ -116,12 +124,19 @@ df_log = (df_log
     .withColumn('userId',
     			col('userId').cast(LongType())))
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 df_log_valid = df_log.dropna(how='any', subset=['userId', 'sessionId'])
 
-st.subheader('Step 2')
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
 
 cat_cols = list(filter(lambda c: c[1] == 'string', df_log_valid.dtypes))
 cat_cols = [item[0] for item in cat_cols]
+
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
 
 # Fix the wrong encoding for the columns that are strings, and in order
 # to retrieve the correct characters the encode-decode process must be
@@ -132,6 +147,9 @@ for column in cat_cols:
     df_log_valid = encode_decode_column(df_log_valid, column,
     									'ISO-8859-1', 'UTF-8')
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 # Create the parsing functions with the user_agents library
 get_browser     = udf(lambda x: parse(x).browser.family, StringType())
 get_os          = udf(lambda x: parse(x).os.family, StringType())
@@ -140,6 +158,9 @@ get_is_phone    = udf(lambda x: 1 if parse(x).is_mobile else 0, IntegerType())
 get_is_tablet   = udf(lambda x: 1 if parse(x).is_tablet else 0, IntegerType())
 get_is_computer = udf(lambda x: 1 if parse(x).is_pc else 0, IntegerType())
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 df_log_valid = (df_log_valid
     .withColumn('browser', get_browser('userAgent'))
     .withColumn('os', get_os('userAgent'))
@@ -147,6 +168,9 @@ df_log_valid = (df_log_valid
     .withColumn('isPhone', get_is_phone('userAgent'))
     .withColumn('isTablet', get_is_tablet('userAgent'))
     .withColumn('isComputer', get_is_computer('userAgent')))
+
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
 
 # Flag the churn
 flag_cancellation_event = udf(
@@ -162,20 +186,32 @@ df_log_valid = (df_log_valid
 	.withColumn('churned', Fsum('churn')
 	.over(window_val)))
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 # Add the cohort
 df_log_valid = (df_log_valid
 	.withColumn('cohort', substring('registration', 1, 7)))
+
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
 
 # Create a user feature matrix
 df_users_features = (df_log_valid
 	.select('userId', 'churned')
 	.dropDuplicates(['userId']))
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 # Create year and week columns to aggregate data in the next steps
 df_log_valid = (df_log_valid
     .withColumn('year', year(col('ts').cast(DateType())))
     .withColumn('week', weekofyear(col('ts').cast(DateType())))
     .withColumn('yearWeek', concat_ws('-', col('year'), col('week'))))
+
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
 
 # Add the avg. songs per week
 df_avg_songs_week = (df_log_valid
@@ -185,12 +221,18 @@ df_avg_songs_week = (df_log_valid
     .groupBy('userId')
     .agg(avg('count').alias('avgSongsWeek')))
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 # Add the avg. sessions per week
 df_avg_sessions_week = (df_log_valid
     .groupby('userId','yearWeek')
     .agg(countDistinct('sessionId').alias('sessions'))
     .groupBy('userId')
     .agg(avg('sessions').alias('avgSessionsWeek')))
+
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
 
 # Add the avg. session duration
 df_avg_session_duration = (df_log_valid
@@ -200,16 +242,25 @@ df_avg_session_duration = (df_log_valid
     .groupBy('userId')
     .agg(avg('sessionDuration').alias('avgSessionDuration')))
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 # Add the cohort
 df_cohort = (df_log_valid
     .withColumn('cohort', substring('registration', 1, 7))
     .select('userId', 'cohort')
     .dropDuplicates(['userId']))
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 # Add the average song length
 df_length = (df_log_valid
     .groupBy('userId')
     .agg(avg('length').alias('length')))
+
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
 
 # Add the most recent metropolitan area
 df_metro_area = (df_log_valid
@@ -218,6 +269,9 @@ df_metro_area = (df_log_valid
     .groupBy('userId')
     .agg(first('metropolitanArea').alias('metropolitanArea')))
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 # Add the most recent state
 df_state = (df_log_valid
     .withColumn('state', split('location', ',')[1])
@@ -225,17 +279,26 @@ df_state = (df_log_valid
     .groupBy('userId')
     .agg(first('state').alias('state')))
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 # Add the most recent gender
 df_gender = (df_log_valid
     .orderBy(desc('ts'))
     .groupBy('userId')
     .agg(first('gender').alias('gender')))
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 # Add the most recent level
 df_level = (df_log_valid
     .orderBy(desc('ts'))
     .groupBy('userId')
     .agg(first('level').alias('level')))
+
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
 
 # Add the most used browser
 df_browser = (df_log_valid
@@ -246,6 +309,9 @@ df_browser = (df_log_valid
     .groupBy('userId')
     .agg(first('browser').alias('browser')))
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 # Add the most used OS
 df_os = (df_log_valid
     .select('userId', 'os')
@@ -254,6 +320,9 @@ df_os = (df_log_valid
     .orderBy(desc('count'))
     .groupBy('userId')
     .agg(first('os').alias('os')))
+
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
 
 # Add the most used device
 df_device = (df_log_valid
@@ -264,6 +333,9 @@ df_device = (df_log_valid
     .groupBy('userId')
     .agg(first('device').alias('device')))
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 # Add the most used is phone
 df_is_phone = (df_log_valid
     .select('userId', 'isPhone')
@@ -272,6 +344,9 @@ df_is_phone = (df_log_valid
     .orderBy(desc('count'))
     .groupBy('userId')
     .agg(first('isPhone').alias('isPhone')))
+
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
 
 # Add the most used is tablet
 df_is_tablet = (df_log_valid
@@ -282,6 +357,9 @@ df_is_tablet = (df_log_valid
     .groupBy('userId')
     .agg(first('isTablet').alias('isTablet')))
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 # Add the most used is computer
 df_is_computer = (df_log_valid
     .select('userId', 'isComputer')
@@ -290,6 +368,9 @@ df_is_computer = (df_log_valid
     .orderBy(desc('count'))
     .groupBy('userId')
     .agg(first('isComputer').alias('isComputer')))
+
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
 
 df_users_features = (df_users_features
     .join(df_avg_songs_week, on='userId')
@@ -308,6 +389,9 @@ df_users_features = (df_users_features
     .join(df_is_tablet, on='userId')
     .join(df_is_computer, on='userId'))
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 feature_vector    = 'features'
 target_vector     = 'label'
 prediction_vector = 'prediction'
@@ -316,6 +400,9 @@ df_processed = (df_users_features
     .drop('userId', 'metropolitanArea', 'state')
     .withColumnRenamed('churned', target_vector))
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 indexer_level   = StringIndexer(inputCol='level',   outputCol='levelIndex')
 indexer_gender  = StringIndexer(inputCol='gender',  outputCol='genderIndex')
 indexer_cohort  = StringIndexer(inputCol='cohort',  outputCol='cohortIndex')
@@ -323,10 +410,16 @@ indexer_browser = StringIndexer(inputCol='browser', outputCol='browserIndex')
 indexer_device  = StringIndexer(inputCol='device',  outputCol='deviceIndex')
 indexer_os      = StringIndexer(inputCol='os',      outputCol='osIndex')
 
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
+
 ohe_inputs  = ['levelIndex', 'genderIndex', 'cohortIndex', 'browserIndex', 'deviceIndex', 'osIndex']
 ohe_outputs = ['levelOhe',   'genderOhe',   'cohortOhe',   'browserOhe',   'deviceOhe',   'osOhe']
 
-one_hot_encoder = OneHotEncoderEstimator(inputCols=ohe_inputs, outputCols=ohe_outputs)
+one_hot_encoder = OneHotEncoder(inputCols=ohe_inputs, outputCols=ohe_outputs)
+
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
 
 va_inputs = ['avgSongsWeek',
              'avgSessionsWeek',
@@ -355,11 +448,22 @@ pipeline_process = Pipeline(stages=[
     vector_assembler
 ])
 
-df_processed = pipeline_process.fit(df_processed).transform(df_processed)
+percent_complete += total/n_steps
+my_bar.progress(percent_complete)
 
-# seed = 0
+# df_processed = pipeline_process.fit(df_processed).transform(df_processed)
 
-# df_train, df_test = df_processed.randomSplit((0.8, 0.2), seed=seed)
+seed = 0
+df_train, df_test = df_processed.randomSplit((0.8, 0.2), seed=seed)
+
+percent_complete += total/n_steps
+my_bar.progress(1.0)
+
+# To load the trained model:
+path = '/Users/gabriel.tempass/Repositories/sparkify-churn-prediction/model'
+best_model = PipelineModel.load(path)
+predictions = best_model.transform(df_test)
+
 
 # lr = LogisticRegression(featuresCol=feature_vector,
 #                         labelCol=target_vector,
