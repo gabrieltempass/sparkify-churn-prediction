@@ -5,7 +5,7 @@ channels:
   - defaults
 dependencies:
   - python=3.7.9
-  - java-1.8.0-openjdk-cos7-s390x=1.8.0.242.b08=2
+  - java-1.8.0-openjdk-cos7-s390x
   - pandas=1.2.0
   - pip=20.3.3
   - pip:

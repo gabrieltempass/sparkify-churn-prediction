@@ -6,8 +6,7 @@ import pandas as pd
 from pyspark.sql import SparkSession, Window
 from pyspark.sql.functions import col, udf, from_unixtime, year, weekofyear, substring, encode, decode, split, desc, avg, first, concat_ws, countDistinct, sum as Fsum, max as Fmax, min as Fmin
 from pyspark.sql.types import StringType, LongType, IntegerType, DateType, TimestampType
-from pyspark.ml.feature import StringIndexer, OneHotEncoder, VectorAssembler, PCA
-# from pyspark.ml.feature import StringIndexer, OneHotEncoderEstimator, VectorAssembler, PCA
+from pyspark.ml.feature import StringIndexer, OneHotEncoderEstimator, VectorAssembler, PCA
 from pyspark.ml.classification import LogisticRegression, RandomForestClassifier
 from pyspark.ml import Pipeline
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator, BinaryClassificationEvaluator
@@ -416,7 +415,7 @@ my_bar.progress(percent_complete)
 ohe_inputs  = ['levelIndex', 'genderIndex', 'cohortIndex', 'browserIndex', 'deviceIndex', 'osIndex']
 ohe_outputs = ['levelOhe',   'genderOhe',   'cohortOhe',   'browserOhe',   'deviceOhe',   'osOhe']
 
-one_hot_encoder = OneHotEncoder(inputCols=ohe_inputs, outputCols=ohe_outputs)
+one_hot_encoder = OneHotEncoderEstimator(inputCols=ohe_inputs, outputCols=ohe_outputs)
 
 percent_complete += total/n_steps
 my_bar.progress(percent_complete)
