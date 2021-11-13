@@ -97,7 +97,7 @@ spark = (SparkSession
     .appName('Sparkify')
     .getOrCreate())
 
-df_log = spark.read.json('../data/' + option)
+df_log = spark.read.json('data/' + option)
 st.dataframe(df_log.limit(10).toPandas(), 1000, 600)
 
 distinct_user_ids = df_log.dropDuplicates(['userId']).count()

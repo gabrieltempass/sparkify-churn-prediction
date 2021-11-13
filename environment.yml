@@ -1,15 +1,13 @@
 name: sparkify-churn-prediction
 channels:
   - conda-forge
-  - main
   - defaults
 dependencies:
   - python=3.7.9
-  - java-1.8.0-openjdk-cos7-s390x
   - pandas=1.2.0
   - pip=20.3.3
   - pip:
-    - pyspark==2.4.4
+    - pyspark==3.0.0
     - streamlit==1.1.0
     - ua-parser==0.10.0
     - user-agents==2.2.0
