@@ -10,6 +10,8 @@ The dataset used is a log file containing all the user interactions with the pla
 
 Pandas and Scikit-learn libraries are not able to run on distributed clusters. However, Spark is capable of such, so, it was used to do the extract, transform, load (ETL) process, with the [PySpark SQL module](https://spark.apache.org/docs/2.4.4/api/python/pyspark.sql.html), and to apply the machine learning algorithims, with the [PySpark ML Package](https://spark.apache.org/docs/2.4.4/api/python/pyspark.ml.html).
 
+Web app: https://share.streamlit.io/gabrieltempass/sparkify-churn-prediction
+
 The project is divided into the following tasks:
 
 ### 1. Load and Clean Dataset
@@ -40,6 +42,8 @@ That is why the [F1](https://en.wikipedia.org/wiki/F-score) metric was chosen at
 
 Discuss which methods to use moving forward, and how to test how well the recommendations are working for engaging users.
 
+- The models tested output a probability for each user to churn, and they compare them against a threshold (usually 50%). If the probability is higher than the threshold, the user is classified as churn, and if it is lower it is classified as not churn. The F1 score is calculated uppon this fixed threshold, which may not be optimal. An improvement to the analysis could be to use AUC (Area Under the Curve) as the evaluation metric to compare the models. Since AUC calculates a balance between [sensitivity and specificity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity) for all possible probability thresholds (from 0% to 100%).
+
 ## Dependencies
 
 To run locally:
@@ -64,14 +68,23 @@ To run on an AWS EMR cluster:
 
 ### To run locally:
 
-1. Clone the git repository:
 
-`git clone https://github.com/gabrieltempass/article-recommendation-engine.git`
+1. Go to the [Oracle Java Archive page](https://www.oracle.com/java/technologies/javase/javase8u211-later-archive-downloads.html).
+2. Search for `Java SE Development Kit 8u271`.
+3. Download the appropriate `jdk-8u271` file for your operating system.
+4. Install Java.
+5. Clone the git repository:
 
-2. Go to the project's directory.
-3. Open the Jupyter notebook, with the command:
+```
+git clone https://github.com/gabrieltempass/article-recommendation-engine.git
+```
 
-`jupyter notebook "notebook/sparkify_churn_prediction.ipynb"`
+6. Go to the project's directory.
+7. Open the Jupyter notebook, with the command:
+
+```
+jupyter notebook "notebook/sparkify_churn_prediction.ipynb"
+```
 
 ### To run on an AWS EMR cluster:
 
